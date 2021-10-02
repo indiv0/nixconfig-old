@@ -405,4 +405,19 @@ in
     # connect to `qemu:///system` through a mounted socket.
     app.gid = 1000;
   };
+
+  services.plex.enable = true;
+  services.plex.openFirewall = true;
+  services.plex.package = pkgs.plex.overrideAttrs (x: let
+      # See: https://www.plex.tv/media-server-downloads/
+      version = "1.24.4.5081-e362dc1ee";
+    in {
+      name = "plex-${version}";
+      src = pkgs.fetchurl {
+        url = "https://downloads.plex.tv/plex-media-server-new/${version}/debian/plexmediaserver_${version}_amd64.deb";
+        sha256 = "17igy0lq7mjmrw5xq92b57np422x8hj6m8qzjri493yc6fw1cl1m";
+      };
+    }
+  );
+  nixpkgs.config.allowUnfree = true;
 }
