@@ -99,5 +99,11 @@
     options = [ "bind" ];
   };
 
+  fileSystems."/home/indiv0" = {
+    device = "/persist/home/indiv0";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
   swapDevices = [ ];
 }
