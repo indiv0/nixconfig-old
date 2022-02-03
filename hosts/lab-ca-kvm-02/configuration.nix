@@ -422,4 +422,7 @@ in
     }
   );
   nixpkgs.config.allowUnfree = true;
+
+  # Open port for Minecraft server.
+  networking.firewall.allowedTCPPorts = [ 25565 ];
 }
