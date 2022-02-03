@@ -383,12 +383,14 @@ in
       mkRemoteSync = dest: {
         recursive = true;
         target = "sanoid@${backupbox}:zpool-fnazxg/backup/${dest}";
+        extraArgs = [ "--source-bwlimit=1m" ];
       };
     in
     {
       enable = true;
       sshKey = "/root/.ssh/id_ed25519";
       #commonArgs = [ "--no-stream" ];
+      commonArgs = [ "--source-bwlimit=1m" "--target-bwlimit=1m" ];
       commands = {
         # Remote syncs.
         "zpool-xkui0j/safe" = mkRemoteSync "zpool-xkui0j/safe";
