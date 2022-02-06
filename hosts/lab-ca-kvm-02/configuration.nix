@@ -426,4 +426,11 @@ in
 
   # Open port for Minecraft server.
   networking.firewall.allowedTCPPorts = [ 25565 ];
+
+  # To get a NixOS system that supports flakes, switch to the `nixUnstable`
+  # package and enable some experimental features.
+  nix.package = pkgs.nixUnstable;
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes
+  '';
 }
