@@ -266,8 +266,9 @@ in
   #  modprobe -i vfio-pci
   #'';
 
-  # Update to the latest linux kernel instead of the default LTS kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Update to the latest ZFS-compatible linux kernel instead of the default
+  # LTS kernel.
+  boot.kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
 
   boot.kernelParams = [
     "kvm.ignore_msrs=1"
