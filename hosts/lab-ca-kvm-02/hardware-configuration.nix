@@ -105,5 +105,17 @@
     options = [ "bind" ];
   };
 
+  fileSystems."/var/lib/hass" = {
+    device = "/persist/var/lib/hass";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
+  fileSystems."/var/lib/syncoid/.ssh" = {
+    device = "/persist/home/syncoid/.ssh";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
   swapDevices = [ ];
 }

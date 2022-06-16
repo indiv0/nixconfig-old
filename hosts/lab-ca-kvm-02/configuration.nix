@@ -87,6 +87,12 @@ in
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+  services.openssh.knownHosts = {
+    lab-ca-nas-01 = {
+      hostNames = ["lab-ca-nas-01" "100.85.82.78"];
+      publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAqPOcf+FAi3O/4esAFcEerf0oePF5Ei9yeIts1Y+PLx";
+    };
+  };
 
   # Don't allow mutation of users outside of the config.
   users.mutableUsers = false;
@@ -163,10 +169,10 @@ in
   };
 
   # Install useful packages globally.
-  environment.systemPackages = with pkgs; [
-    tree
-    vim
-  ];
+  #environment.systemPackages = with pkgs; [
+  #  tree
+  #  vim
+  #];
 
   # Use systemd's tmpfiles.d rules to create a symlink from
   # `/var/lib/libvirt/images` and `/var/lib/libvirt/qemu` to my persisted
@@ -389,9 +395,13 @@ in
     in
     {
       enable = true;
-      sshKey = "/root/.ssh/id_ed25519";
+      sshKey = "/var/lib/syncoid/.ssh/id_ed25519";
+      #user = "root";
+      localSourceAllow = [ "bookmark" "hold" "send" "snapshot" "destroy" ];
       #commonArgs = [ "--no-stream" ];
-      commonArgs = [ "--source-bwlimit=1m" "--target-bwlimit=1m" ];
+      #commonArgs = [ "--source-bwlimit=1m" "--target-bwlimit=1m" ];
+      #commonArgs = [ "--source-bwlimit=1m" "--target-bwlimit=1m" "--no-sync-snap" ];
+      commonArgs = [ "--source-bwlimit=1m" "--target-bwlimit=1m" "--no-resume" ];
       commands = {
         # Remote syncs.
         "zpool-xkui0j/safe" = mkRemoteSync "zpool-xkui0j/safe";
@@ -425,7 +435,7 @@ in
   nixpkgs.config.allowUnfree = true;
 
   # Open port for Minecraft server.
-  networking.firewall.allowedTCPPorts = [ 25565 ];
+  networking.firewall.allowedTCPPorts = [ 25565 8123 ];
 
   # To get a NixOS system that supports flakes, switch to the `nixUnstable`
   # package and enable some experimental features.
@@ -433,4 +443,36 @@ in
   nix.extraOptions = ''
     experimental-features = nix-command flakes
   '';
+
+  #services.home-assistant.enable = true;
+  #services.home-assistant.applyDefaultConfig = true;
+  #services.home-assistant.autoExtraComponents = true;
+  ##services.home-assistant.configDir = "/persist/var/lib/hass";
+  #services.home-assistant.configWritable = true;
+  #services.home-assistant.openFirewall = true;
+  #services.home-assistant.package = (pkgs.home-assistant.override {
+  #  extraComponents = [
+  #    "default_config"
+  #    "esphome"
+  #    "met"
+  #    "spotify"
+  #    "homekit_controller"
+  #    "hue"
+  #    "samsungtv"
+  #    "tts"
+  #    "github"
+  #  ];
+  #  extraPackages = py: with py; [
+  #    #govee_api_laggat
+  #    #python_govee_api
+  #  ];
+  #}).overrideAttrs (oldAttrs: {
+  #  # Don't run package tests, they take a long time.
+  #  doInstallCheck = false;
+  #});
+
+  #import ../modules/govee.nix;
+  #environment.systemPackages = [
+  #  (pkgs.callPackage ../../modules/govee.nix { })
+  #];
 }
