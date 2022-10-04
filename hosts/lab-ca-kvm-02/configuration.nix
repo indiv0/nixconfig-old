@@ -8,6 +8,11 @@ let
   secrets = import ../../secrets.nix;
   # Load common configuration data (e.g. public keys).
   data = import ../../data.nix;
+  #nixos-unstable = import (builtins.fetchTarball {
+  #  url = https://github.com/nixos/nixpkgs/archive/nixos-unstable.tar.gz;
+  #  sha256 = "0sg852hm5jihapwqbkpnrsnwxdf64fxbrdi44l5894dczrwqs2nj";
+  #}) {};
+  nixos-unstable = import <nixos> {};
 in
 {
   imports = [
@@ -169,10 +174,16 @@ in
   };
 
   # Install useful packages globally.
-  #environment.systemPackages = with pkgs; [
-  #  tree
-  #  vim
-  #];
+  environment.systemPackages = with pkgs; [
+    tree
+    vim
+    htop
+    pciutils
+    git
+    smartmontools
+    hwloc
+    stress-ng
+  ];
 
   # Use systemd's tmpfiles.d rules to create a symlink from
   # `/var/lib/libvirt/images` and `/var/lib/libvirt/qemu` to my persisted
@@ -276,6 +287,27 @@ in
   # LTS kernel.
   boot.kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
 
+  boot.kernelPatches = [
+    {
+      name = "vfio";
+      patch = null;
+      extraConfig = ''
+        CPU_ISOLATION y
+
+        RCU_EXPERT y
+        RCU_NOCB_CPU y
+        NO_HZ_FULL y
+
+        KVM y
+        KVM_AMD y
+
+        VFIO y
+        VFIO_IOMMU_TYPE1 y
+        VFIO_VIRQFD y
+        VFIO_PCI y
+      '';
+    }
+  ];
   boot.kernelParams = [
     "kvm.ignore_msrs=1"
     "kvm.report_ignored_msrs=0"
@@ -296,6 +328,26 @@ in
     "video=efifb:off"
     # Bind devices to vfio-pci by PCI IDs.
     "vfio-pci.ids=10de:2204,10de:1aef"
+    # Reserve 64G of 1G static huge pages.
+    "default_hugepagesz=1G"
+    "hugepagesz=1G"
+    "hugepages=64"
+    # IOMMU interrupt remapping?
+    "vfio_iommu_type1.allow_unsafe_interrupts=1"
+    # Isolate the pinned CPUs.
+    "isolcpus=8,9,10,11,12,13,14,15,24,25,26,27,28,29,30,31"
+    "nohz_full=8,9,10,11,12,13,14,15,24,25,26,27,28,29,30,31"
+    "rcu_nocbs=8,9,10,11,12,13,14,15,24,25,26,27,28,29,30,31"
+    "rcu_nocb_poll"
+    # Enable AVIC.
+    "kvm-amd.nested=0"
+    "kvm_amd.nested=0"
+    "kvm-amd.avic=1"
+    "kvm_amd.avic=1"
+    "kvm-amd.npt=1"
+    "kvm_amd.npt=1"
+    "kvm-amd.sev=0"
+    "kvm_amd.sev=0"
   ];
 
   # Blacklist any NVIDIA drivers from binding to the GPU.
@@ -326,10 +378,39 @@ in
   # start the formerly running guest on boot. However, any guest marked as
   # autostart will still be automatically started by libvirtd.
   virtualisation.libvirtd.onBoot = "ignore";
+  virtualisation.libvirtd.qemu.package = nixos-unstable.qemu;
+
+  # Add a libvirt hook to set the CPU affinity for our VMs on start up.
+  # Source: https://www.reddit.com/r/NixOS/comments/oeosh5/comment/h47wwgu
+  #systemd.services.libvirtd.preStart = let
+  #  qemuHook = pkgs.writeScript "qemu-hook" ''
+  #    #!${pkgs.stdenv.shell}
+
+  #    GUEST_NAME="$1"
+  #    OPERATION="$2"
+  #    SUB_OPERATION="$3"
+
+  #    if [ "$GUEST_NAME" == "dsk-ca-nik-01" ]; then
+  #      if [ "$OPERATION" == "start" ]; then
+  #        ${pkgs.vfio-isolate}/bin/vfio-isolate cpuset-create --cpus C8-15,24-31 /host.slice move-tasks / /host.slice
+  #      fi
+
+  #      if [ "$OPERATION" == "stopped" ]; then
+  #        ${pkgs.vfio-isolate}/bin/vfio-isolate cpuset-delete /host.slice
+  #      fi
+  #    fi
+  #  '';
+  #in ''
+  #  mkdir -p /var/lib/libvirt/hooks
+  #  chmod 755 /var/lib/libvirt/hooks
+
+  #  # Copy hook files
+  #  ln -sf ${qemuHook} /var/lib/libvirt/hooks/qemu
+  #'';
 
   virtualisation.docker = {
     # Enable Docker as a container daemon.
-    enable = true;
+    enable = false;
     # Configure Docker to use ZFS as the storage driver.
     # By default, Docker will automatically determine the appropriate driver
     # to use, but just to be safe we force it to use ZFS.
@@ -475,4 +556,6 @@ in
   #environment.systemPackages = [
   #  (pkgs.callPackage ../../modules/govee.nix { })
   #];
+
+  systemd.extraConfig = "CPUAffinity=0 1 2 3 4 5 6 7 16 17 18 19 20 21 22 23";
 }
