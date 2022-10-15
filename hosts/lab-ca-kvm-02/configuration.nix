@@ -8,6 +8,9 @@ let
   secrets = import ../../secrets.nix;
   # Load common configuration data (e.g. public keys).
   data = import ../../data.nix;
+
+  minecraftServerTcpPorts = [ 25565 ];
+  nfsTcpPorts = [ 2049 ];
 in
 {
   imports = [
@@ -45,14 +48,14 @@ in
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.device = "nodev";
 
-  # Mirror all UEFI files, kernels, grub menus, and other things needed to
-  # to the other drive.
-  boot.loader.grub.mirroredBoots = [
-    {
-      devices = [ "/dev/disk/by-uuid/10AC-0764" ];
-      path = "/boot-fallback";
-    }
-  ];
+  ## Mirror all UEFI files, kernels, grub menus, and other things needed to
+  ## to the other drive.
+  #boot.loader.grub.mirroredBoots = [
+  #  {
+  #    devices = [ "/dev/disk/by-uuid/10AC-0764" ];
+  #    path = "/boot-fallback";
+  #  }
+  #];
 
   # Configure the system to support ZFS.
   boot.supportedFilesystems = [ "zfs" ];
@@ -319,7 +322,7 @@ in
   # Enable libvirtd, a daemon that manages virtual machines.
   # Users in the "libvirtd" group can interact with the daemon (e.g. to
   # start or stop VMs) using the `virsh` command line tool, among others.
-  virtualisation.libvirtd.enable = true;
+  virtualisation.libvirtd.enable = false;
   # Specifies the action to be done to / on the guests when the host boots.
   # The "start" option starts all guests that were running prior to shutdown
   # regardless of their autostart settings. The "ignore" option will not
@@ -329,7 +332,7 @@ in
 
   virtualisation.docker = {
     # Enable Docker as a container daemon.
-    enable = true;
+    enable = false;
     # Configure Docker to use ZFS as the storage driver.
     # By default, Docker will automatically determine the appropriate driver
     # to use, but just to be safe we force it to use ZFS.
@@ -419,7 +422,7 @@ in
     app.gid = 1000;
   };
 
-  services.plex.enable = true;
+  services.plex.enable = false;
   services.plex.openFirewall = true;
   services.plex.package = pkgs.plex.overrideAttrs (x: let
       # See: https://www.plex.tv/media-server-downloads/
@@ -435,7 +438,7 @@ in
   nixpkgs.config.allowUnfree = true;
 
   # Open port for Minecraft server.
-  networking.firewall.allowedTCPPorts = [ 25565 8123 ];
+  networking.firewall.allowedTCPPorts = minecraftServerTcpPorts ++ nfsTcpPorts;
 
   # To get a NixOS system that supports flakes, switch to the `nixUnstable`
   # package and enable some experimental features.
@@ -444,35 +447,13 @@ in
     experimental-features = nix-command flakes
   '';
 
-  #services.home-assistant.enable = true;
-  #services.home-assistant.applyDefaultConfig = true;
-  #services.home-assistant.autoExtraComponents = true;
-  ##services.home-assistant.configDir = "/persist/var/lib/hass";
-  #services.home-assistant.configWritable = true;
-  #services.home-assistant.openFirewall = true;
-  #services.home-assistant.package = (pkgs.home-assistant.override {
-  #  extraComponents = [
-  #    "default_config"
-  #    "esphome"
-  #    "met"
-  #    "spotify"
-  #    "homekit_controller"
-  #    "hue"
-  #    "samsungtv"
-  #    "tts"
-  #    "github"
-  #  ];
-  #  extraPackages = py: with py; [
-  #    #govee_api_laggat
-  #    #python_govee_api
-  #  ];
-  #}).overrideAttrs (oldAttrs: {
-  #  # Don't run package tests, they take a long time.
-  #  doInstallCheck = false;
-  #});
 
-  #import ../modules/govee.nix;
-  #environment.systemPackages = [
-  #  (pkgs.callPackage ../../modules/govee.nix { })
-  #];
+
+  ### NFS ###
+
+  services.nfs.server.enable = true;
+  services.nfs.server.exports = ''
+    /export         172.30.194.7(rw,fsid=0,no_subtree_check)
+    /export/storage 172.30.194.7(rw,nohide,insecure,no_subtree_check)
+  '';
 }

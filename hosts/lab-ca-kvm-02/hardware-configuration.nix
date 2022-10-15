@@ -24,20 +24,21 @@
     fsType = "vfat";
   };
 
-  fileSystems."/boot-fallback" = {
-    device = "/dev/disk/by-uuid/10AC-0764";
-    fsType = "vfat";
-  };
+  #fileSystems."/boot-fallback" = {
+  #  device = "/dev/disk/by-uuid/10AC-0764";
+  #  fsType = "vfat";
+  #};
 
   fileSystems."/nix" = {
     device = "zroot-mutcso/local/nix";
     fsType = "zfs";
   };
 
-  fileSystems."/local/storage" = {
-    device = "zroot-mutcso/local/storage";
-    fsType = "zfs";
-  };
+  # CLEARED BUT NOT SCRUBBED
+  #fileSystems."/local/storage" = {
+  #  device = "zroot-mutcso/local/storage";
+  #  fsType = "zfs";
+  #};
 
   fileSystems."/persist" = {
     device = "zroot-mutcso/safe/persist";
@@ -73,25 +74,27 @@
     options = [ "bind" ];
   };
 
-  fileSystems."/var/lib/docker" = {
-    device = "zroot-mutcso/local/docker-root";
-    fsType = "zfs";
-  };
+  # CLEARED
+  #fileSystems."/var/lib/docker" = {
+  #  device = "zroot-mutcso/local/docker-root";
+  #  fsType = "zfs";
+  #};
 
-  fileSystems."/var/lib/docker/volumes" = {
-    device = "zroot-mutcso/safe/docker-volumes";
-    fsType = "zfs";
-  };
+  # CLEARED
+  #fileSystems."/var/lib/docker/volumes" = {
+  #  device = "zroot-mutcso/safe/docker-volumes";
+  #  fsType = "zfs";
+  #};
 
-  fileSystems."/zroot-mutcso/safe/storage" = {
-    device = "zroot-mutcso/safe/storage";
-    fsType = "zfs";
-  };
+  #fileSystems."/zroot-mutcso/safe/storage" = {
+  #  device = "zroot-mutcso/safe/storage";
+  #  fsType = "zfs";
+  #};
 
-  fileSystems."/var/lib/libvirt/images" = {
-    device = "zroot-mutcso/safe/images";
-    fsType = "zfs";
-  };
+  #fileSystems."/var/lib/libvirt/images" = {
+  #  device = "zroot-mutcso/safe/images";
+  #  fsType = "zfs";
+  #};
 
   fileSystems."/root/.ssh" = {
     device = "/persist/root/.ssh";
@@ -105,12 +108,6 @@
     options = [ "bind" ];
   };
 
-  fileSystems."/var/lib/hass" = {
-    device = "/persist/var/lib/hass";
-    fsType = "none";
-    options = [ "bind" ];
-  };
-
   fileSystems."/var/lib/syncoid/.ssh" = {
     device = "/persist/home/syncoid/.ssh";
     fsType = "none";
@@ -118,4 +115,13 @@
   };
 
   swapDevices = [ ];
+
+
+
+  ### NFS ###
+
+  fileSystems."/export/storage" = {
+    device = "/storage";
+    options = [ "bind" ];
+  };
 }
