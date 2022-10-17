@@ -15,7 +15,10 @@ in
     users.users.deploy = {
       uid = 1001;
       isNormalUser = true;
-      openssh.authorizedKeys.keys = [ data.keys.systems.lap-ca-nik-01 ];
+      openssh.authorizedKeys.keys = [
+        data.keys.systems.lap-ca-nik-02-ed25519
+        data.keys.systems.lap-ca-nik-02-rsa
+      ];
     };
     # It needs to be a trusted user to copy things into the store.
     nix.trustedUsers = [ "deploy" ];

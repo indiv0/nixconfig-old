@@ -26,7 +26,8 @@ in
       extraGroups = [ "wheel" ] ++ extraGroups;
       initialHashedPassword = secrets.hashedIndiv0Password;
       openssh.authorizedKeys.keys = [
-        data.keys.systems.lap-ca-nik-01
+        data.keys.systems.lap-ca-nik-02-ed25519
+        data.keys.systems.lap-ca-nik-02-rsa
         data.keys.systems.phn-ca-nik-01
       ];
     };

@@ -96,6 +96,9 @@ in
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAqPOcf+FAi3O/4esAFcEerf0oePF5Ei9yeIts1Y+PLx";
     };
   };
+  services.openssh.extraConfig = ''
+    PubkeyAcceptedAlgorithms +ssh-rsa
+  '';
 
   # Don't allow mutation of users outside of the config.
   users.mutableUsers = false;
@@ -159,7 +162,8 @@ in
       ];
       # Public SSH key used for login.
       authorizedKeys = [
-        data.keys.systems.lap-ca-nik-01
+        data.keys.systems.lap-ca-nik-02-ed25519
+        data.keys.systems.lap-ca-nik-02-rsa
         data.keys.systems.phn-ca-nik-01
       ];
     };
