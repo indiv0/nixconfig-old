@@ -23,6 +23,7 @@ in
     ../../modules/my-smartd.nix
     ../../modules/my-user.nix
     ../../modules/my-zfs.nix
+    ../../cachix.nix
   ];
 
   # This value determines the NixOS release from which the default
@@ -34,6 +35,46 @@ in
   system.stateVersion = "20.09"; # Did you read the comment?
 
   networking.hostName = "lab-ca-kvm-02";
+
+
+
+  # ==============
+  # === NVIDIA ===
+  # ==============
+
+  # Enable OpenGL.
+  hardware.opengl.enable = true;
+  hardware.opengl.driSupport = true;
+  hardware.opengl.driSupport32Bit = true;
+
+  # Load NVIDIA driver for Xorg and Wayland.
+  services.xserver.videoDrivers = ["nvidia"];
+
+  # Modesetting is required.
+  hardware.nvidia.modesetting.enable = true;
+  # NVIDIA power management. Experimental, and can cause sleep/suspend to fail.
+  hardware.nvidia.powerManagement.enable = false;
+  # Fine-grained power management. Turns off GPU when not in use.
+  # Experimental and only works on modern NVIDIA GPUs (Turing or newer).
+  hardware.nvidia.powerManagement.finegrained = false;
+
+  # Use the NVidia open source kernel module (not to be confused with the
+  # independent third-party "nouveau" open source driver).
+  # Support is limited to the Turing and later architectures. Full list of
+  # supported GPUs is at: 
+  # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
+  # Only available from driver 515.43.04+
+  # Currently alpha-quality/buggy, so false is currently the recommended setting.
+  #hardware.nvidia.open = false;
+
+  # Enable the Nvidia settings menu,
+  # accessible via `nvidia-settings`.
+  hardware.nvidia.nvidiaSettings = true;
+
+  # Select the appropriate driver version for your specific GPU.
+  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
+
+
 
   # Set NIX_PATH for NixOS config and nixpkgs.
   nix.nixPath = [
@@ -94,7 +135,7 @@ in
   services.openssh.enable = true;
   services.openssh.knownHosts = {
     lab-ca-nas-01 = {
-      hostNames = ["lab-ca-nas-01" "100.85.82.78"];
+      extraHostNames = ["lab-ca-nas-01" "100.85.82.78"];
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAqPOcf+FAi3O/4esAFcEerf0oePF5Ei9yeIts1Y+PLx";
     };
   };
@@ -301,14 +342,16 @@ in
     "iommu=pt"
     # Alleviate hotplugging issues.
     "pci=realloc"
-    # Block the usage of the EFI framebuffer on boot.
-    "video=efifb:off"
-    # Bind devices to vfio-pci by PCI IDs.
-    "vfio-pci.ids=10de:2204,10de:1aef"
+    # NOTE [NP]: Commented out because NVIDIA driver section was added.
+    ## Block the usage of the EFI framebuffer on boot.
+    #"video=efifb:off"
+    ## Bind devices to vfio-pci by PCI IDs.
+    #"vfio-pci.ids=10de:2204,10de:1aef"
   ];
 
-  # Blacklist any NVIDIA drivers from binding to the GPU.
-  boot.blacklistedKernelModules = [ "nvidia" "nouveau" "nvidiafb" ];
+  # NOTE [NP]: Commented out because NVIDIA driver section was added.
+  ## Blacklist any NVIDIA drivers from binding to the GPU.
+  #boot.blacklistedKernelModules = [ "nvidia" "nouveau" "nvidiafb" ];
   boot.initrd.kernelModules = [
     # Ensure the kernel module for your network card is in the initrd.
     #
