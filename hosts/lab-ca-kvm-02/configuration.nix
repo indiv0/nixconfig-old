@@ -11,6 +11,8 @@ let
 
   minecraftServerTcpPorts = [ 25565 ];
   nfsTcpPorts = [ 2049 ];
+  vsftpdPorts = [ 21 ];
+  vsftpdPortRanges = [ { from = 51000; to = 51999; } ];
 in
 {
   imports = [
@@ -336,7 +338,7 @@ in
 
   virtualisation.docker = {
     # Enable Docker as a container daemon.
-    enable = false;
+    enable = true;
     # Configure Docker to use ZFS as the storage driver.
     # By default, Docker will automatically determine the appropriate driver
     # to use, but just to be safe we force it to use ZFS.
@@ -442,7 +444,9 @@ in
   nixpkgs.config.allowUnfree = true;
 
   # Open port for Minecraft server.
-  networking.firewall.allowedTCPPorts = minecraftServerTcpPorts ++ nfsTcpPorts;
+  networking.firewall.allowedTCPPorts = minecraftServerTcpPorts ++ nfsTcpPorts ++ vsftpdPorts;
+  networking.firewall.allowedTCPPortRanges = vsftpdPortRanges;
+  networking.firewall.connectionTrackingModules = [ "ftp" ];
 
   # To get a NixOS system that supports flakes, switch to the `nixUnstable`
   # package and enable some experimental features.
@@ -460,4 +464,43 @@ in
     /export         172.30.194.7(rw,fsid=0,no_subtree_check)
     /export/storage 172.30.194.7(rw,nohide,insecure,no_subtree_check)
   '';
+
+
+
+  ## FTP ##
+
+  #services.vsftpd = {
+  #  enable = true;
+  #  # Cannot chroot && write
+  #  #chrootLocalUser = true;
+  #  writeEnable = true;
+  #  localUsers = true;
+  #  #userlist = [ "indiv0" ];
+  #  #userlistEnable = true;
+  #  anonymousUser = true;
+  #  anonymousUserNoPassword = true;
+  #};
+  #services.vsftpd.extraConfig = ''
+  #  pasv_enable = true;
+  #  pasv_min_port = 51000;
+  #  pasv_max_port = 51999;
+  #'';
+  systemd.services.pure-ftpd = {
+    description = "PureFTPD Server";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      # -e only Anon -M allow Dirs
+      ExecStart = "${pkgs.pure-ftpd}/bin/pure-ftpd -e -M -p 51000:51999";
+      Type = "simple";
+    };
+  };
+
+  users.extraGroups.ftp.gid = config.ids.gids.ftp;
+  users.extraUsers.ftp = {
+    uid = config.ids.uids.ftp;
+    group = "ftp";
+    description = "Anonymous FTP user";
+    home = "/storage/ftp/public";
+  };
+  #networking.firewall.allowedTCPPortRanges = [ { from = 30000; to = 50000; } ];
 }

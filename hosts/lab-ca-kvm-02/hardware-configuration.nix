@@ -74,17 +74,15 @@
     options = [ "bind" ];
   };
 
-  # CLEARED
-  #fileSystems."/var/lib/docker" = {
-  #  device = "zroot-mutcso/local/docker-root";
-  #  fsType = "zfs";
-  #};
+  fileSystems."/var/lib/docker" = {
+    device = "zroot-mutcso/docker-root";
+    fsType = "zfs";
+  };
 
-  # CLEARED
-  #fileSystems."/var/lib/docker/volumes" = {
-  #  device = "zroot-mutcso/safe/docker-volumes";
-  #  fsType = "zfs";
-  #};
+  fileSystems."/var/lib/docker/volumes" = {
+    device = "zroot-mutcso/docker-volumes";
+    fsType = "zfs";
+  };
 
   #fileSystems."/zroot-mutcso/safe/storage" = {
   #  device = "zroot-mutcso/safe/storage";
