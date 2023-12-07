@@ -74,6 +74,14 @@ in
   # Select the appropriate driver version for your specific GPU.
   hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
 
+  # Enable nvidia-docker wrapper, supporting NVIDIA GPUs inside docker containers
+  virtualisation.docker.enableNvidia = true;
+  # Extra comamnd-line options to pass to `docker` daemon.
+  #virtualisation.docker.extraOptions = "--runtime=nvidia -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VISIBLE_DEVICES=all";
+  # libnvidia-container does not support cgroups v2 (prior to 1.8.0)
+  # https://github.com/NVIDIA/nvidia-docker/issues/1447
+  systemd.enableUnifiedCgroupHierarchy = false;
+
 
 
   # Set NIX_PATH for NixOS config and nixpkgs.
@@ -219,10 +227,14 @@ in
   };
 
   # Install useful packages globally.
-  #environment.systemPackages = with pkgs; [
-  #  tree
-  #  vim
-  #];
+  environment.systemPackages = with pkgs; [
+    vim
+    git
+    python3
+    sqlite
+    rustup
+    tmux
+  ];
 
   # Use systemd's tmpfiles.d rules to create a symlink from
   # `/var/lib/libvirt/images` and `/var/lib/libvirt/qemu` to my persisted
